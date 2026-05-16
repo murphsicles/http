@@ -1,0 +1,177 @@
+// http/src/status.z — HTTP status codes
+
+// An HTTP status code (100-999).
+struct StatusCode {
+    value: u16,
+}
+
+impl StatusCode {
+    // ─── 1xx Informational ────────────────────────────────────────────────
+    const CONTINUE: StatusCode = StatusCode { value: 100 };
+    const SWITCHING_PROTOCOLS: StatusCode = StatusCode { value: 101 };
+    const PROCESSING: StatusCode = StatusCode { value: 102 };
+
+    // ─── 2xx Success ──────────────────────────────────────────────────────
+    const OK: StatusCode = StatusCode { value: 200 };
+    const CREATED: StatusCode = StatusCode { value: 201 };
+    const ACCEPTED: StatusCode = StatusCode { value: 202 };
+    const NON_AUTHORITATIVE_INFORMATION: StatusCode = StatusCode { value: 203 };
+    const NO_CONTENT: StatusCode = StatusCode { value: 204 };
+    const RESET_CONTENT: StatusCode = StatusCode { value: 205 };
+    const PARTIAL_CONTENT: StatusCode = StatusCode { value: 206 };
+
+    // ─── 3xx Redirection ──────────────────────────────────────────────────
+    const MULTIPLE_CHOICES: StatusCode = StatusCode { value: 300 };
+    const MOVED_PERMANENTLY: StatusCode = StatusCode { value: 301 };
+    const FOUND: StatusCode = StatusCode { value: 302 };
+    const SEE_OTHER: StatusCode = StatusCode { value: 303 };
+    const NOT_MODIFIED: StatusCode = StatusCode { value: 304 };
+    const TEMPORARY_REDIRECT: StatusCode = StatusCode { value: 307 };
+    const PERMANENT_REDIRECT: StatusCode = StatusCode { value: 308 };
+
+    // ─── 4xx Client Error ─────────────────────────────────────────────────
+    const BAD_REQUEST: StatusCode = StatusCode { value: 400 };
+    const UNAUTHORIZED: StatusCode = StatusCode { value: 401 };
+    const PAYMENT_REQUIRED: StatusCode = StatusCode { value: 402 };
+    const FORBIDDEN: StatusCode = StatusCode { value: 403 };
+    const NOT_FOUND: StatusCode = StatusCode { value: 404 };
+    const METHOD_NOT_ALLOWED: StatusCode = StatusCode { value: 405 };
+    const NOT_ACCEPTABLE: StatusCode = StatusCode { value: 406 };
+    const PROXY_AUTHENTICATION_REQUIRED: StatusCode = StatusCode { value: 407 };
+    const REQUEST_TIMEOUT: StatusCode = StatusCode { value: 408 };
+    const CONFLICT: StatusCode = StatusCode { value: 409 };
+    const GONE: StatusCode = StatusCode { value: 410 };
+    const LENGTH_REQUIRED: StatusCode = StatusCode { value: 411 };
+    const PRECONDITION_FAILED: StatusCode = StatusCode { value: 412 };
+    const PAYLOAD_TOO_LARGE: StatusCode = StatusCode { value: 413 };
+    const URI_TOO_LONG: StatusCode = StatusCode { value: 414 };
+    const UNSUPPORTED_MEDIA_TYPE: StatusCode = StatusCode { value: 415 };
+    const RANGE_NOT_SATISFIABLE: StatusCode = StatusCode { value: 416 };
+    const EXPECTATION_FAILED: StatusCode = StatusCode { value: 417 };
+    const IM_A_TEAPOT: StatusCode = StatusCode { value: 418 };
+    const MISDIRECTED_REQUEST: StatusCode = StatusCode { value: 421 };
+    const UNPROCESSABLE_ENTITY: StatusCode = StatusCode { value: 422 };
+    const LOCKED: StatusCode = StatusCode { value: 423 };
+    const FAILED_DEPENDENCY: StatusCode = StatusCode { value: 424 };
+    const TOO_EARLY: StatusCode = StatusCode { value: 425 };
+    const UPGRADE_REQUIRED: StatusCode = StatusCode { value: 426 };
+    const PRECONDITION_REQUIRED: StatusCode = StatusCode { value: 428 };
+    const TOO_MANY_REQUESTS: StatusCode = StatusCode { value: 429 };
+    const REQUEST_HEADER_FIELDS_TOO_LARGE: StatusCode = StatusCode { value: 431 };
+    const UNAVAILABLE_FOR_LEGAL_REASONS: StatusCode = StatusCode { value: 451 };
+
+    // ─── 5xx Server Error ─────────────────────────────────────────────────
+    const INTERNAL_SERVER_ERROR: StatusCode = StatusCode { value: 500 };
+    const NOT_IMPLEMENTED: StatusCode = StatusCode { value: 501 };
+    const BAD_GATEWAY: StatusCode = StatusCode { value: 502 };
+    const SERVICE_UNAVAILABLE: StatusCode = StatusCode { value: 503 };
+    const GATEWAY_TIMEOUT: StatusCode = StatusCode { value: 504 };
+    const HTTP_VERSION_NOT_SUPPORTED: StatusCode = StatusCode { value: 505 };
+    const VARIANT_ALSO_NEGOTIATES: StatusCode = StatusCode { value: 506 };
+    const INSUFFICIENT_STORAGE: StatusCode = StatusCode { value: 507 };
+    const LOOP_DETECTED: StatusCode = StatusCode { value: 508 };
+    const NOT_EXTENDED: StatusCode = StatusCode { value: 510 };
+    const NETWORK_AUTHENTICATION_REQUIRED: StatusCode = StatusCode { value: 511 };
+
+    // ─── Constructor ──────────────────────────────────────────────────────
+
+    // Create from a u16 value. Valid range: 100-999.
+    fn from_u16(src: u16) -> Result<StatusCode, InvalidStatusCode> {
+        if src >= 100 && src <= 999 {
+            return Result::Ok(StatusCode { value: src });
+        }
+        return Result::Err(InvalidStatusCode::new());
+    }
+
+    // Create from bytes (exactly 3 ASCII digits)
+    fn from_bytes(src: &[u8]) -> Result<StatusCode, InvalidStatusCode> {
+        if src.len() != 3 {
+            return Result::Err(InvalidStatusCode::new());
+        }
+        let a = (src[0] - '0' as u8) as u16;
+        let b = (src[1] - '0' as u8) as u16;
+        let c = (src[2] - '0' as u8) as u16;
+        if a == 0 || a > 9 || b > 9 || c > 9 {
+            return Result::Err(InvalidStatusCode::new());
+        }
+        let status = a * 100 + b * 10 + c;
+        return StatusCode::from_u16(status);
+    }
+
+    // ─── Accessors ────────────────────────────────────────────────────────
+
+    // Returns the numeric status code
+    fn as_u16(&self) -> u16 {
+        return self.value;
+    }
+
+    // Returns the canonical reason phrase
+    fn canonical_reason(&self) -> &str {
+        return match self.value {
+            100 => "Continue",
+            101 => "Switching Protocols",
+            200 => "OK",
+            201 => "Created",
+            202 => "Accepted",
+            204 => "No Content",
+            301 => "Moved Permanently",
+            302 => "Found",
+            304 => "Not Modified",
+            307 => "Temporary Redirect",
+            400 => "Bad Request",
+            401 => "Unauthorized",
+            403 => "Forbidden",
+            404 => "Not Found",
+            405 => "Method Not Allowed",
+            408 => "Request Timeout",
+            409 => "Conflict",
+            410 => "Gone",
+            412 => "Precondition Failed",
+            413 => "Payload Too Large",
+            415 => "Unsupported Media Type",
+            418 => "I'm a teapot",
+            422 => "Unprocessable Entity",
+            429 => "Too Many Requests",
+            500 => "Internal Server Error",
+            501 => "Not Implemented",
+            502 => "Bad Gateway",
+            503 => "Service Unavailable",
+            504 => "Gateway Timeout",
+            505 => "HTTP Version Not Supported",
+            _ => "",
+        };
+    }
+
+    // ─── Classification ───────────────────────────────────────────────────
+
+    fn is_informational(&self) -> bool {
+        return self.value >= 100 && self.value < 200;
+    }
+    fn is_success(&self) -> bool {
+        return self.value >= 200 && self.value < 300;
+    }
+    fn is_redirection(&self) -> bool {
+        return self.value >= 300 && self.value < 400;
+    }
+    fn is_client_error(&self) -> bool {
+        return self.value >= 400 && self.value < 500;
+    }
+    fn is_server_error(&self) -> bool {
+        return self.value >= 500 && self.value < 600;
+    }
+
+    fn eq(&self, other: &StatusCode) -> bool {
+        return self.value == other.value;
+    }
+}
+
+// Error for invalid status codes
+struct InvalidStatusCode {
+    _priv: i64,
+}
+
+impl InvalidStatusCode {
+    fn new() -> InvalidStatusCode {
+        return InvalidStatusCode { _priv: 0 };
+    }
+}

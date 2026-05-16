@@ -1,0 +1,145 @@
+// http/src/method.z — HTTP request method
+
+// The Request Method (VERB).
+// Contains constants for standard HTTP methods: GET, POST, PUT, DELETE,
+// HEAD, OPTIONS, CONNECT, PATCH, TRACE, plus Extension for custom methods.
+struct Method {
+    inner: MethodKind,
+}
+
+enum MethodKind {
+    Options,
+    Get,
+    Post,
+    Put,
+    Delete,
+    Head,
+    Trace,
+    Connect,
+    Patch,
+    Extension(str),
+}
+
+impl Method {
+    // Standard HTTP methods
+    const GET: Method = Method { inner: MethodKind::Get };
+    const POST: Method = Method { inner: MethodKind::Post };
+    const PUT: Method = Method { inner: MethodKind::Put };
+    const DELETE: Method = Method { inner: MethodKind::Delete };
+    const HEAD: Method = Method { inner: MethodKind::Head };
+    const OPTIONS: Method = Method { inner: MethodKind::Options };
+    const CONNECT: Method = Method { inner: MethodKind::Connect };
+    const PATCH: Method = Method { inner: MethodKind::Patch };
+    const TRACE: Method = Method { inner: MethodKind::Trace };
+
+    // Convert a byte slice to an HTTP method
+    fn from_bytes(src: &[u8]) -> Result<Method, InvalidMethod> {
+        let len = src.len();
+        if len == 0 {
+            return Result::Err(InvalidMethod::new());
+        }
+
+        // Try to convert to string
+        return Method::from_str(src);
+    }
+
+    // Convert a string to an HTTP method
+    fn from_str(src: &str) -> Result<Method, InvalidMethod> {
+        if src == "GET" {
+            return Result::Ok(Method::GET);
+        } else if src == "POST" {
+            return Result::Ok(Method::POST);
+        } else if src == "PUT" {
+            return Result::Ok(Method::PUT);
+        } else if src == "DELETE" {
+            return Result::Ok(Method::DELETE);
+        } else if src == "HEAD" {
+            return Result::Ok(Method::HEAD);
+        } else if src == "OPTIONS" {
+            return Result::Ok(Method::OPTIONS);
+        } else if src == "CONNECT" {
+            return Result::Ok(Method::CONNECT);
+        } else if src == "PATCH" {
+            return Result::Ok(Method::PATCH);
+        } else if src == "TRACE" {
+            return Result::Ok(Method::TRACE);
+        }
+
+        // Custom method — validate that it's a valid token
+        let mut i = 0;
+        let len = src.len();
+        while i < len {
+            let c = src[i];
+            // Valid token chars: !#$%&'*+-.^_`|~
+            if (c >= 'a' as u8 && c <= 'z' as u8)
+                || (c >= 'A' as u8 && c <= 'Z' as u8)
+                || (c >= '0' as u8 && c <= '9' as u8)
+                || c == '!' as u8 || c == '#' as u8 || c == '$' as u8
+                || c == '%' as u8 || c == '&' as u8 || c == '\'' as u8
+                || c == '*' as u8 || c == '+' as u8 || c == '-' as u8
+                || c == '.' as u8 || c == '^' as u8 || c == '_' as u8
+                || c == '`' as u8 || c == '|' as u8 || c == '~' as u8 {
+                i += 1;
+            } else {
+                return Result::Err(InvalidMethod::new());
+            }
+        }
+
+        return Result::Ok(Method { inner: MethodKind::Extension(src) });
+    }
+
+    // Returns the method as a string
+    fn as_str(&self) -> &str {
+        match self.inner {
+            MethodKind::Options => return "OPTIONS",
+            MethodKind::Get => return "GET",
+            MethodKind::Post => return "POST",
+            MethodKind::Put => return "PUT",
+            MethodKind::Delete => return "DELETE",
+            MethodKind::Head => return "HEAD",
+            MethodKind::Trace => return "TRACE",
+            MethodKind::Connect => return "CONNECT",
+            MethodKind::Patch => return "PATCH",
+            MethodKind::Extension(s) => return s,
+        }
+    }
+
+    // Returns true if the method is idempotent (same result on repeated calls)
+    fn is_idempotent(&self) -> bool {
+        match self.inner {
+            MethodKind::Get => true,
+            MethodKind::Head => true,
+            MethodKind::Put => true,
+            MethodKind::Delete => true,
+            MethodKind::Options => true,
+            MethodKind::Trace => true,
+            _ => false,
+        }
+    }
+
+    // Returns true if the method is safe (no side effects)
+    fn is_safe(&self) -> bool {
+        match self.inner {
+            MethodKind::Get => true,
+            MethodKind::Head => true,
+            MethodKind::Options => true,
+            MethodKind::Trace => true,
+            _ => false,
+        }
+    }
+
+    fn eq(&self, other: &Method) -> bool {
+        return self.as_str() == other.as_str();
+    }
+}
+
+// Error returned when converting from invalid method bytes
+struct InvalidMethod {
+    _priv: i64,
+}
+
+impl InvalidMethod {
+    fn new() -> InvalidMethod {
+        return InvalidMethod { _priv: 0 };
+    }
+}

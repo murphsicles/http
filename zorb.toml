@@ -1,0 +1,10 @@
+[package]
+name = "@net/http"
+version = "1.2.0"
+edition = "2026"
+authors = ["The Zeta Foundation <team@z-lang.org>"]
+description = "Core HTTP types for Zeta — Request, Response, Method, StatusCode, Uri, HeaderMap"
+license = "MIT"
+repository = "https://github.com/murphsicles/http"
+keywords = ["http", "request", "response", "header", "uri", "web"]
+categories = ["web-programming::http"]

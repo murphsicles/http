@@ -1,0 +1,291 @@
+// http/src/headers.z — HTTP header types
+
+// ─── HeaderName ───────────────────────────────────────────────────────────
+
+// A valid HTTP header name (case-insensitive).
+struct HeaderName {
+    name: str,
+}
+
+impl HeaderName {
+    // Common header name constants
+    const ACCEPT: HeaderName = HeaderName { name: "accept" };
+    const ACCEPT_CHARSET: HeaderName = HeaderName { name: "accept-charset" };
+    const ACCEPT_ENCODING: HeaderName = HeaderName { name: "accept-encoding" };
+    const ACCEPT_LANGUAGE: HeaderName = HeaderName { name: "accept-language" };
+    const ACCEPT_RANGES: HeaderName = HeaderName { name: "accept-ranges" };
+    const ACCESS_CONTROL_ALLOW_CREDENTIALS: HeaderName = HeaderName { name: "access-control-allow-credentials" };
+    const ACCESS_CONTROL_ALLOW_HEADERS: HeaderName = HeaderName { name: "access-control-allow-headers" };
+    const ACCESS_CONTROL_ALLOW_METHODS: HeaderName = HeaderName { name: "access-control-allow-methods" };
+    const ACCESS_CONTROL_ALLOW_ORIGIN: HeaderName = HeaderName { name: "access-control-allow-origin" };
+    const ACCESS_CONTROL_EXPOSE_HEADERS: HeaderName = HeaderName { name: "access-control-expose-headers" };
+    const ACCESS_CONTROL_MAX_AGE: HeaderName = HeaderName { name: "access-control-max-age" };
+    const ACCESS_CONTROL_REQUEST_HEADERS: HeaderName = HeaderName { name: "access-control-request-headers" };
+    const ACCESS_CONTROL_REQUEST_METHOD: HeaderName = HeaderName { name: "access-control-request-method" };
+    const AGE: HeaderName = HeaderName { name: "age" };
+    const ALLOW: HeaderName = HeaderName { name: "allow" };
+    const AUTHORIZATION: HeaderName = HeaderName { name: "authorization" };
+    const CACHE_CONTROL: HeaderName = HeaderName { name: "cache-control" };
+    const CONNECTION: HeaderName = HeaderName { name: "connection" };
+    const CONTENT_DISPOSITION: HeaderName = HeaderName { name: "content-disposition" };
+    const CONTENT_ENCODING: HeaderName = HeaderName { name: "content-encoding" };
+    const CONTENT_LANGUAGE: HeaderName = HeaderName { name: "content-language" };
+    const CONTENT_LENGTH: HeaderName = HeaderName { name: "content-length" };
+    const CONTENT_LOCATION: HeaderName = HeaderName { name: "content-location" };
+    const CONTENT_RANGE: HeaderName = HeaderName { name: "content-range" };
+    const CONTENT_TYPE: HeaderName = HeaderName { name: "content-type" };
+    const COOKIE: HeaderName = HeaderName { name: "cookie" };
+    const DATE: HeaderName = HeaderName { name: "date" };
+    const ETAG: HeaderName = HeaderName { name: "etag" };
+    const EXPECT: HeaderName = HeaderName { name: "expect" };
+    const EXPIRES: HeaderName = HeaderName { name: "expires" };
+    const FORWARDED: HeaderName = HeaderName { name: "forwarded" };
+    const FROM: HeaderName = HeaderName { name: "from" };
+    const HOST: HeaderName = HeaderName { name: "host" };
+    const IF_MATCH: HeaderName = HeaderName { name: "if-match" };
+    const IF_MODIFIED_SINCE: HeaderName = HeaderName { name: "if-modified-since" };
+    const IF_NONE_MATCH: HeaderName = HeaderName { name: "if-none-match" };
+    const IF_RANGE: HeaderName = HeaderName { name: "if-range" };
+    const IF_UNMODIFIED_SINCE: HeaderName = HeaderName { name: "if-unmodified-since" };
+    const LAST_MODIFIED: HeaderName = HeaderName { name: "last-modified" };
+    const LINK: HeaderName = HeaderName { name: "link" };
+    const LOCATION: HeaderName = HeaderName { name: "location" };
+    const MAX_FORWARDS: HeaderName = HeaderName { name: "max-forwards" };
+    const ORIGIN: HeaderName = HeaderName { name: "origin" };
+    const PRAGMA: HeaderName = HeaderName { name: "pragma" };
+    const PROXY_AUTHENTICATE: HeaderName = HeaderName { name: "proxy-authenticate" };
+    const PROXY_AUTHORIZATION: HeaderName = HeaderName { name: "proxy-authorization" };
+    const RANGE: HeaderName = HeaderName { name: "range" };
+    const REFERER: HeaderName = HeaderName { name: "referer" };
+    const RETRY_AFTER: HeaderName = HeaderName { name: "retry-after" };
+    const SEC_WEBSOCKET_ACCEPT: HeaderName = HeaderName { name: "sec-websocket-accept" };
+    const SEC_WEBSOCKET_EXTENSIONS: HeaderName = HeaderName { name: "sec-websocket-extensions" };
+    const SEC_WEBSOCKET_KEY: HeaderName = HeaderName { name: "sec-websocket-key" };
+    const SEC_WEBSOCKET_PROTOCOL: HeaderName = HeaderName { name: "sec-websocket-protocol" };
+    const SEC_WEBSOCKET_VERSION: HeaderName = HeaderName { name: "sec-websocket-version" };
+    const SERVER: HeaderName = HeaderName { name: "server" };
+    const SET_COOKIE: HeaderName = HeaderName { name: "set-cookie" };
+    const STRICT_TRANSPORT_SECURITY: HeaderName = HeaderName { name: "strict-transport-security" };
+    const TE: HeaderName = HeaderName { name: "te" };
+    const TRAILER: HeaderName = HeaderName { name: "trailer" };
+    const TRANSFER_ENCODING: HeaderName = HeaderName { name: "transfer-encoding" };
+    const UPGRADE: HeaderName = HeaderName { name: "upgrade" };
+    const USER_AGENT: HeaderName = HeaderName { name: "user-agent" };
+    const VARY: HeaderName = HeaderName { name: "vary" };
+    const VIA: HeaderName = HeaderName { name: "via" };
+    const WARNING: HeaderName = HeaderName { name: "warning" };
+    const WWW_AUTHENTICATE: HeaderName = HeaderName { name: "www-authenticate" };
+    const X_CONTENT_TYPE_OPTIONS: HeaderName = HeaderName { name: "x-content-type-options" };
+    const X_FORWARDED_FOR: HeaderName = HeaderName { name: "x-forwarded-for" };
+    const X_FORWARDED_HOST: HeaderName = HeaderName { name: "x-forwarded-host" };
+    const X_FORWARDED_PROTO: HeaderName = HeaderName { name: "x-forwarded-proto" };
+
+    // Create a HeaderName from a string, converting to lowercase.
+    fn from_str(src: &str) -> Result<HeaderName, InvalidHeaderName> {
+        let mut lower = "";
+        let mut i = 0;
+        let len = src.len();
+        while i < len {
+            let c = src[i];
+            // Validate: token characters only
+            if (c >= 'a' as u8 && c <= 'z' as u8)
+                || (c >= 'A' as u8 && c <= 'Z' as u8)
+                || (c >= '0' as u8 && c <= '9' as u8)
+                || c == '!' as u8 || c == '#' as u8 || c == '$' as u8
+                || c == '%' as u8 || c == '&' as u8 || c == '\'' as u8
+                || c == '*' as u8 || c == '+' as u8 || c == '-' as u8
+                || c == '.' as u8 || c == '^' as u8 || c == '_' as u8
+                || c == '`' as u8 || c == '|' as u8 || c == '~' as u8 {
+                // Convert to lowercase
+                if c >= 'A' as u8 && c <= 'Z' as u8 {
+                    lower += (c + 32) as u8;
+                } else {
+                    lower += c;
+                }
+                i += 1;
+            } else {
+                return Result::Err(InvalidHeaderName::new());
+            }
+        }
+        if len == 0 {
+            return Result::Err(InvalidHeaderName::new());
+        }
+        return Result::Ok(HeaderName { name: lower });
+    }
+
+    fn as_str(&self) -> &str {
+        return self.name;
+    }
+
+    fn eq(&self, other: &HeaderName) -> bool {
+        return self.name == other.name;
+    }
+}
+
+// ─── HeaderValue ──────────────────────────────────────────────────────────
+
+// A valid HTTP header value.
+struct HeaderValue {
+    value: str,
+}
+
+impl HeaderValue {
+    // Create a HeaderValue from a static string
+    fn from_static(src: &str) -> HeaderValue {
+        return HeaderValue { value: src };
+    }
+
+    // Create a HeaderValue from a string
+    fn from_str(src: &str) -> Result<HeaderValue, InvalidHeaderValue> {
+        // Basic validation: no control chars (except HTAB)
+        let mut i = 0;
+        let len = src.len();
+        while i < len {
+            let c = src[i];
+            if c < 32 as u8 && c != 9 as u8 {
+                return Result::Err(InvalidHeaderValue::new());
+            }
+            if c == 127 as u8 {
+                return Result::Err(InvalidHeaderValue::new());
+            }
+            i += 1;
+        }
+        return Result::Ok(HeaderValue { value: src });
+    }
+
+    fn as_str(&self) -> &str {
+        return self.value;
+    }
+
+    fn as_bytes(&self) -> &[u8] {
+        return self.value;
+    }
+
+    fn to_str(&self) -> Result<&str, InvalidHeaderValue> {
+        // Check that value is valid UTF-8 (basic check)
+        // For now, return self.value directly
+        return Result::Ok(self.value);
+    }
+}
+
+// ─── HeaderMap ────────────────────────────────────────────────────────────
+
+// A specialized map of HTTP headers.
+// Uses a simple array of (HeaderName, HeaderValue) pairs for MVP.
+struct HeaderEntry {
+    name: HeaderName,
+    value: HeaderValue,
+}
+
+struct HeaderMap {
+    entries: [HeaderEntry; 64],
+    count: i64,
+}
+
+impl HeaderMap {
+    fn new() -> HeaderMap {
+        return HeaderMap {
+            entries: [],
+            count: 0,
+        };
+    }
+
+    // Insert a header. If the header name already exists, appends another value.
+    fn insert(&mut self, name: HeaderName, value: HeaderValue) {
+        if self.count < 64 {
+            self.entries[self.count] = HeaderEntry { name: name, value: value };
+            self.count += 1;
+        }
+    }
+
+    // Get the first value for a given header name.
+    fn get(&self, name: &HeaderName) -> HeaderValue {
+        let mut i = 0;
+        while i < self.count {
+            if self.entries[i].name.eq(name) {
+                return self.entries[i].value;
+            }
+            i += 1;
+        }
+        return HeaderValue { value: "" };
+    }
+
+    // Get all values for a given header name.
+    fn get_all(&self, name: &HeaderName) -> [HeaderValue; 16] {
+        let mut results: [HeaderValue; 16];
+        let mut idx = 0;
+        let mut i = 0;
+        while i < self.count && idx < 16 {
+            if self.entries[i].name.eq(name) {
+                results[idx] = self.entries[i].value;
+                idx += 1;
+            }
+            i += 1;
+        }
+        return results;
+    }
+
+    // Check if a header name exists.
+    fn contains_key(&self, name: &HeaderName) -> bool {
+        let mut i = 0;
+        while i < self.count {
+            if self.entries[i].name.eq(name) {
+                return true;
+            }
+            i += 1;
+        }
+        return false;
+    }
+
+    // Remove all values for a header name.
+    fn remove(&mut self, name: &HeaderName) {
+        let mut write_idx = 0;
+        let mut i = 0;
+        while i < self.count {
+            if !self.entries[i].name.eq(name) {
+                if write_idx != i {
+                    self.entries[write_idx] = self.entries[i];
+                }
+                write_idx += 1;
+            }
+            i += 1;
+        }
+        self.count = write_idx;
+    }
+
+    // Return the number of headers
+    fn len(&self) -> i64 {
+        return self.count;
+    }
+
+    fn is_empty(&self) -> bool {
+        return self.count == 0;
+    }
+
+    // Clear all headers
+    fn clear(&mut self) {
+        self.count = 0;
+    }
+}
+
+// ─── Error Types ──────────────────────────────────────────────────────────
+
+struct InvalidHeaderName {
+    _priv: i64,
+}
+
+impl InvalidHeaderName {
+    fn new() -> InvalidHeaderName {
+        return InvalidHeaderName { _priv: 0 };
+    }
+}
+
+struct InvalidHeaderValue {
+    _priv: i64,
+}
+
+impl InvalidHeaderValue {
+    fn new() -> InvalidHeaderValue {
+        return InvalidHeaderValue { _priv: 0 };
+    }
+}

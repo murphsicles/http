@@ -1,0 +1,104 @@
+// http/src/error.z — HTTP error types
+
+// A generic error type for HTTP operations.
+struct Error {
+    kind: ErrorKind,
+}
+
+enum ErrorKind {
+    StatusCode(i64),
+    Method(i64),
+    Uri(i64),
+    UriParts(i64),
+    HeaderName(i64),
+    HeaderValue(i64),
+    Custom(str),
+}
+
+impl Error {
+    fn new(msg: &str) -> Error {
+        return Error { kind: ErrorKind::Custom(msg) };
+    }
+
+    fn from_status(code: i64) -> Error {
+        return Error { kind: ErrorKind::StatusCode(code) };
+    }
+
+    fn from_method(code: i64) -> Error {
+        return Error { kind: ErrorKind::Method(code) };
+    }
+
+    fn from_uri(code: i64) -> Error {
+        return Error { kind: ErrorKind::Uri(code) };
+    }
+
+    fn from_header_name(code: i64) -> Error {
+        return Error { kind: ErrorKind::HeaderName(code) };
+    }
+
+    fn from_header_value(code: i64) -> Error {
+        return Error { kind: ErrorKind::HeaderValue(code) };
+    }
+}
+
+// Result shorthand using http::Error
+type Result<T> = Result<T, Error>;
+
+// ─── Extensions ───────────────────────────────────────────────────────────
+
+// A type map for storing arbitrary data on requests/responses.
+struct ExtensionEntry {
+    key: i64,
+    value: str,
+}
+
+struct Extensions {
+    entries: [ExtensionEntry; 16],
+    count: i64,
+}
+
+impl Extensions {
+    fn new() -> Extensions {
+        return Extensions {
+            entries: [],
+            count: 0,
+        };
+    }
+
+    fn insert(&mut self, key: i64, value: str) {
+        if self.count < 16 {
+            self.entries[self.count] = ExtensionEntry { key: key, value: value };
+            self.count += 1;
+        }
+    }
+
+    fn get(&self, key: i64) -> str {
+        let mut i = 0;
+        while i < self.count {
+            if self.entries[i].key == key {
+                return self.entries[i].value;
+            }
+            i += 1;
+        }
+        return "";
+    }
+
+    fn remove(&mut self, key: i64) {
+        let mut write_idx = 0;
+        let mut i = 0;
+        while i < self.count {
+            if self.entries[i].key != key {
+                if write_idx != i {
+                    self.entries[write_idx] = self.entries[i];
+                }
+                write_idx += 1;
+            }
+            i += 1;
+        }
+        self.count = write_idx;
+    }
+
+    fn clear(&mut self) {
+        self.count = 0;
+    }
+}

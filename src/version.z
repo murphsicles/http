@@ -1,0 +1,40 @@
+// http/src/version.z — HTTP version
+
+// Represents a version of the HTTP spec.
+struct Version {
+    kind: VersionKind,
+}
+
+enum VersionKind {
+    Http09,
+    Http10,
+    Http11,
+    H2,
+    H3,
+}
+
+impl Version {
+    const HTTP_09: Version = Version { kind: VersionKind::Http09 };
+    const HTTP_10: Version = Version { kind: VersionKind::Http10 };
+    const HTTP_11: Version = Version { kind: VersionKind::Http11 };
+    const HTTP_2: Version = Version { kind: VersionKind::H2 };
+    const HTTP_3: Version = Version { kind: VersionKind::H3 };
+
+    fn default() -> Version {
+        return Version::HTTP_11;
+    }
+
+    fn to_str(&self) -> &str {
+        match self.kind {
+            VersionKind::Http09 => return "HTTP/0.9",
+            VersionKind::Http10 => return "HTTP/1.0",
+            VersionKind::Http11 => return "HTTP/1.1",
+            VersionKind::H2 => return "HTTP/2.0",
+            VersionKind::H3 => return "HTTP/3.0",
+        }
+    }
+
+    fn eq(&self, other: &Version) -> bool {
+        return self.kind == other.kind;
+    }
+}

@@ -1,0 +1,20 @@
+// http/src/lib.z — Core HTTP types for Zeta
+//
+// Port of hyperium/http v1.2.0
+//
+// Provides the fundamental types needed to work with HTTP:
+//   Request<T>, Response<T>      - HTTP message types
+//   Method, StatusCode, Version  - HTTP protocol types
+//   Uri                          - Request target URI
+//   HeaderMap, HeaderName, HeaderValue - HTTP headers
+//   Error, Result<T>             - Error handling
+//   Extensions                   - Type map for request/response data
+
+pub use request::Request;
+pub use response::Response;
+pub use method::Method;
+pub use status::StatusCode;
+pub use version::Version;
+pub use uri::Uri;
+pub use headers::{HeaderMap, HeaderName, HeaderValue};
+pub use error::{Error, Extensions, Result};

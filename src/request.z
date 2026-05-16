@@ -1,0 +1,126 @@
+// http/src/request.z — HTTP Request type
+
+// Represents an HTTP request with a generic body type T.
+struct Request<T> {
+    method: Method,
+    uri: Uri,
+    headers: HeaderMap,
+    version: Version,
+    body: T,
+    extensions: Extensions,
+}
+
+// Builder for constructing HTTP requests.
+struct RequestBuilder {
+    method: Method,
+    uri: str,
+    headers: HeaderMap,
+    version: Version,
+}
+
+impl RequestBuilder {
+    fn new() -> RequestBuilder {
+        return RequestBuilder {
+            method: Method::GET,
+            uri: "",
+            headers: HeaderMap::new(),
+            version: Version::HTTP_11,
+        };
+    }
+
+    fn method(&mut self, method: Method) -> &mut RequestBuilder {
+        self.method = method;
+        return self;
+    }
+
+    fn uri(&mut self, uri: &str) -> &mut RequestBuilder {
+        self.uri = uri;
+        return self;
+    }
+
+    fn header(&mut self, name: HeaderName, value: HeaderValue) -> &mut RequestBuilder {
+        self.headers.insert(name, value);
+        return self;
+    }
+
+    fn version(&mut self, version: Version) -> &mut RequestBuilder {
+        self.version = version;
+        return self;
+    }
+
+    fn body<T>(&self, body: T) -> Result<Request<T>, Error> {
+        let uri_result = Uri::from_str(self.uri);
+        if uri_result.is_err() {
+            return Result::Err(Error::from(uri_result.err().unwrap()));
+        }
+        return Result::Ok(Request {
+            method: self.method,
+            uri: uri_result.unwrap(),
+            headers: self.headers,
+            version: self.version,
+            body: body,
+            extensions: Extensions::new(),
+        });
+    }
+}
+
+impl<T> Request<T> {
+    // Create a new Request builder
+    fn builder() -> RequestBuilder {
+        return RequestBuilder::new();
+    }
+
+    // ─── Accessors ────────────────────────────────────────────────────────
+
+    fn method(&self) -> &Method {
+        return &self.method;
+    }
+
+    fn method_mut(&mut self) -> &mut Method {
+        return &mut self.method;
+    }
+
+    fn uri(&self) -> &Uri {
+        return &self.uri;
+    }
+
+    fn uri_mut(&mut self) -> &mut Uri {
+        return &mut self.uri;
+    }
+
+    fn headers(&self) -> &HeaderMap {
+        return &self.headers;
+    }
+
+    fn headers_mut(&mut self) -> &mut HeaderMap {
+        return &mut self.headers;
+    }
+
+    fn version(&self) -> Version {
+        return self.version;
+    }
+
+    fn version_mut(&mut self) -> &mut Version {
+        return &mut self.version;
+    }
+
+    fn body(&self) -> &T {
+        return &self.body;
+    }
+
+    fn body_mut(&mut self) -> &mut T {
+        return &mut self.body;
+    }
+
+    fn into_body(self) -> T {
+        return self.body;
+    }
+
+    fn extensions(&self) -> &Extensions {
+        return &self.extensions;
+    }
+
+    fn extensions_mut(&mut self) -> &mut Extensions {
+        return &mut self.extensions;
+    }
+}

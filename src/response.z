@@ -1,0 +1,105 @@
+// http/src/response.z — HTTP Response type
+
+// Represents an HTTP response with a generic body type T.
+struct Response<T> {
+    status: StatusCode,
+    headers: HeaderMap,
+    version: Version,
+    body: T,
+    extensions: Extensions,
+}
+
+// Builder for constructing HTTP responses.
+struct ResponseBuilder {
+    status: StatusCode,
+    headers: HeaderMap,
+    version: Version,
+}
+
+impl ResponseBuilder {
+    fn new() -> ResponseBuilder {
+        return ResponseBuilder {
+            status: StatusCode::OK,
+            headers: HeaderMap::new(),
+            version: Version::HTTP_11,
+        };
+    }
+
+    fn status(&mut self, status: StatusCode) -> &mut ResponseBuilder {
+        self.status = status;
+        return self;
+    }
+
+    fn header(&mut self, name: HeaderName, value: HeaderValue) -> &mut ResponseBuilder {
+        self.headers.insert(name, value);
+        return self;
+    }
+
+    fn version(&mut self, version: Version) -> &mut ResponseBuilder {
+        self.version = version;
+        return self;
+    }
+
+    fn body<T>(&self, body: T) -> Result<Response<T>, Error> {
+        return Result::Ok(Response {
+            status: self.status,
+            headers: self.headers,
+            version: self.version,
+            body: body,
+            extensions: Extensions::new(),
+        });
+    }
+}
+
+impl<T> Response<T> {
+    // Create a new Response builder
+    fn builder() -> ResponseBuilder {
+        return ResponseBuilder::new();
+    }
+
+    // ─── Accessors ────────────────────────────────────────────────────────
+
+    fn status(&self) -> StatusCode {
+        return self.status;
+    }
+
+    fn status_mut(&mut self) -> &mut StatusCode {
+        return &mut self.status;
+    }
+
+    fn headers(&self) -> &HeaderMap {
+        return &self.headers;
+    }
+
+    fn headers_mut(&mut self) -> &mut HeaderMap {
+        return &mut self.headers;
+    }
+
+    fn version(&self) -> Version {
+        return self.version;
+    }
+
+    fn version_mut(&mut self) -> &mut Version {
+        return &mut self.version;
+    }
+
+    fn body(&self) -> &T {
+        return &self.body;
+    }
+
+    fn body_mut(&mut self) -> &mut T {
+        return &mut self.body;
+    }
+
+    fn into_body(self) -> T {
+        return self.body;
+    }
+
+    fn extensions(&self) -> &Extensions {
+        return &self.extensions;
+    }
+
+    fn extensions_mut(&mut self) -> &mut Extensions {
+        return &mut self.extensions;
+    }
+}
